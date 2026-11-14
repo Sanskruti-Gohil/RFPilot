@@ -1,0 +1,45 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# React / Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Local databases and vector storage
+*.db
+*.sqlite
+*.sqlite3
+storage/documents/*
+storage/vector_db/*
+
+# Model files
+*.gguf
+*.safetensors
+*.bin
+models/
+
+# IDE
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+.pytest_cache/
+.coverage
+htmlcov/

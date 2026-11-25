@@ -43,3 +43,8 @@ def store_chunks(chunks, embeddings, document_id, filename):
     )
 
     return len(documents)
+
+def delete_document(document_id):
+    collection.delete(
+        where={"document_id": document_id}
+    )

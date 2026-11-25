@@ -7,7 +7,10 @@ from app.core.config import LLM_MODEL
 def generate_answer(question, context):
 
     if not context:
-        return "I could not find relevant information in the uploaded documents."
+        return (
+            "I could not find relevant information "
+            "in the uploaded documents."
+        )
 
     context_text = ""
 
@@ -31,10 +34,12 @@ Answer the user's question using ONLY the supplied document context.
 Rules:
 1. Do not invent information.
 2. Do not use outside knowledge.
-3. If the context does not contain the answer, say so.
-4. Keep answers clear and professional.
-5. Cite supporting sources using [Source 1], [Source 2], etc.
-6. Distinguish confirmed information from missing information.
+3. If the context does not contain the answer, clearly say so.
+4. Keep answers concise and professional.
+5. Cite only sources that directly support your answer.
+6. Do not cite irrelevant sources.
+7. Never infer missing business information.
+8. Distinguish confirmed information from unavailable information.
 
 DOCUMENT CONTEXT:
 

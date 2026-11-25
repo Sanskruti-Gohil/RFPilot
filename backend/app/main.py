@@ -10,6 +10,7 @@ from app.core.config import DOCUMENT_DIR, MAX_FILE_SIZE
 from app.services.ingestion import extract_pdf
 from app.services.embeddings import generate_embeddings
 from app.services.vector_store import store_chunks
+from app.services.evidence_validation import verify_evidence
 
 from pydantic import BaseModel
 
@@ -122,6 +123,7 @@ class ChatRequest(BaseModel):
     document_id: str | None = None
 
 
+
 @app.post("/api/chat")
 def chat_with_documents(request: ChatRequest):
 
@@ -131,7 +133,7 @@ def chat_with_documents(request: ChatRequest):
             detail="Question cannot be empty."
         )
 
-    # Retrieve relevant document chunks
+    # Step 1: Retrieve relevant document chunks
     context = retrieve_chunks(
         question=request.question,
         document_id=request.document_id,
@@ -140,20 +142,40 @@ def chat_with_documents(request: ChatRequest):
 
     if not context:
         return {
+            "question": request.question,
             "answer": "No relevant information was found in the uploaded documents.",
-            "sources": []
+            "sources": [],
+            "verification_status": "NOT_FOUND"
         }
 
-    # Generate grounded answer
-    answer = generate_answer(
+    # Step 2: Verify retrieved evidence
+    verification = verify_evidence(
         request.question,
         context
     )
 
-    # Prepare source references
+    status = verification["status"]
+    verified_chunks = verification["verified_chunks"]
+
+    # Step 3: Handle unsupported questions
+    if status == "NOT_FOUND" or not verified_chunks:
+        return {
+            "question": request.question,
+            "answer": "I could not find sufficient supporting evidence in the uploaded documents to answer this question.",
+            "sources": [],
+            "verification_status": "NOT_FOUND"
+        }
+
+    # Step 4: Generate answer using verified evidence only
+    answer = generate_answer(
+        request.question,
+        verified_chunks
+    )
+
+    # Step 5: Return verified source references
     sources = []
 
-    for index, chunk in enumerate(context, start=1):
+    for index, chunk in enumerate(verified_chunks, start=1):
 
         sources.append({
             "source": f"Source {index}",
@@ -166,5 +188,7 @@ def chat_with_documents(request: ChatRequest):
     return {
         "question": request.question,
         "answer": answer,
-        "sources": sources
+        "sources": sources,
+        "verification_status": status,
+        "verification_reason": verification["reason"]
     }
